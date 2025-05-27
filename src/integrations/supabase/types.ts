@@ -9,7 +9,295 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      notes: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          subject_id: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+          word_count: number | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          subject_id?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+          word_count?: number | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          subject_id?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          exam_target: string | null
+          full_name: string | null
+          id: string
+          target_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          exam_target?: string | null
+          full_name?: string | null
+          id: string
+          target_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          exam_target?: string | null
+          full_name?: string | null
+          id?: string
+          target_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      study_resources: {
+        Row: {
+          created_at: string
+          duration_minutes: number | null
+          external_url: string | null
+          file_path: string | null
+          id: string
+          name: string
+          size_mb: number | null
+          subject_id: string | null
+          tags: string[] | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number | null
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          name: string
+          size_mb?: number | null
+          subject_id?: string | null
+          tags?: string[] | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number | null
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          name?: string
+          size_mb?: number | null
+          subject_id?: string | null
+          tags?: string[] | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_resources_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_sessions: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          description: string | null
+          duration_hours: number | null
+          id: string
+          scheduled_date: string
+          session_type: string | null
+          start_time: string | null
+          subject_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          duration_hours?: number | null
+          id?: string
+          scheduled_date: string
+          session_type?: string | null
+          start_time?: string | null
+          subject_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          duration_hours?: number | null
+          id?: string
+          scheduled_date?: string
+          session_type?: string | null
+          start_time?: string | null
+          subject_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          total_topics: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          total_topics?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          total_topics?: number | null
+        }
+        Relationships: []
+      }
+      syllabus_topics: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          id: string
+          notes: string | null
+          priority: string | null
+          subject_id: string
+          topic_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          priority?: string | null
+          subject_id: string
+          topic_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          priority?: string | null
+          subject_id?: string
+          topic_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "syllabus_topics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          subject_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          subject_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          subject_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
