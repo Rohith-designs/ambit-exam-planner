@@ -4,53 +4,65 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
 import { CheckSquare, Plus, Calendar, Flag } from 'lucide-react';
 import { useState } from 'react';
+import { useTasks, useUpdateTaskCompletion, useCreateTask } from '@/hooks/useTasks';
+import { useSubjects } from '@/hooks/useSubjects';
+import { useToast } from '@/hooks/use-toast';
 
 export const TaskManager = () => {
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: 'Complete Data Structures Chapter 5',
-      subject: 'Computer Science',
-      priority: 'high',
-      dueDate: '2024-01-22',
-      completed: false,
-      type: 'study'
-    },
-    {
-      id: 2,
-      title: 'Solve 20 Aptitude Questions',
-      subject: 'Quantitative Aptitude',
-      priority: 'medium',
-      dueDate: '2024-01-21',
-      completed: true,
-      type: 'practice'
-    },
-    {
-      id: 3,
-      title: 'Read Current Affairs - Week 3',
-      subject: 'General Studies',
-      priority: 'high',
-      dueDate: '2024-01-20',
-      completed: false,
-      type: 'reading'
-    },
-    {
-      id: 4,
-      title: 'Revise Database Concepts',
-      subject: 'Computer Science',
-      priority: 'low',
-      dueDate: '2024-01-25',
-      completed: false,
-      type: 'revision'
-    }
-  ]);
+  const { data: tasks = [] } = useTasks();
+  const { data: subjects = [] } = useSubjects();
+  const updateTaskCompletion = useUpdateTaskCompletion();
+  const createTask = useCreateTask();
+  const { toast } = useToast();
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [showAddTask, setShowAddTask] = useState(false);
 
-  const toggleTask = (taskId: number) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
+  const toggleTask = async (taskId: string, currentStatus: boolean) => {
+    try {
+      await updateTaskCompletion.mutateAsync({
+        taskId,
+        completed: !currentStatus
+      });
+      
+      toast({
+        title: !currentStatus ? "Task completed!" : "Task marked incomplete",
+        description: "Task status updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update task status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddTask = async () => {
+    if (!newTaskTitle.trim()) return;
+    
+    try {
+      await createTask.mutateAsync({
+        title: newTaskTitle,
+        priority: 'medium'
+      });
+      
+      setNewTaskTitle('');
+      setShowAddTask(false);
+      
+      toast({
+        title: "Task created!",
+        description: "New task has been added to your list.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create task. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -62,22 +74,14 @@ export const TaskManager = () => {
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'study': return 'bg-blue-100 text-blue-800';
-      case 'practice': return 'bg-purple-100 text-purple-800';
-      case 'reading': return 'bg-orange-100 text-orange-800';
-      case 'revision': return 'bg-cyan-100 text-cyan-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const completedTasks = tasks.filter(task => task.completed).length;
   const totalTasks = tasks.length;
-  const completionRate = (completedTasks / totalTasks) * 100;
+  const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   const pendingTasks = tasks.filter(task => !task.completed);
-  const overdueTasks = pendingTasks.filter(task => new Date(task.dueDate) < new Date());
+  const overdueTasks = pendingTasks.filter(task => 
+    task.due_date && new Date(task.due_date) < new Date()
+  );
 
   return (
     <div className="space-y-6">
@@ -152,35 +156,67 @@ export const TaskManager = () => {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Pending Tasks</span>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowAddTask(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Task
               </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {showAddTask && (
+              <div className="mb-4 p-3 border rounded-lg space-y-3">
+                <Input
+                  placeholder="Enter task title..."
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleAddTask} disabled={!newTaskTitle.trim()}>
+                    Add
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowAddTask(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="space-y-3">
-              {pendingTasks.map((task) => (
-                <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg border hover:shadow-sm">
-                  <Checkbox 
-                    checked={task.completed}
-                    onCheckedChange={() => toggleTask(task.id)}
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{task.title}</h3>
-                    <p className="text-sm text-gray-600">{task.subject}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="secondary" className={getPriorityColor(task.priority)}>
-                        {task.priority}
-                      </Badge>
-                      <Badge variant="outline" className={getTypeColor(task.type)}>
-                        {task.type}
-                      </Badge>
-                      <span className="text-xs text-gray-500">Due: {task.dueDate}</span>
+              {pendingTasks.length > 0 ? (
+                pendingTasks.map((task) => (
+                  <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg border hover:shadow-sm">
+                    <Checkbox 
+                      checked={task.completed}
+                      onCheckedChange={() => toggleTask(task.id, task.completed)}
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">{task.title}</h3>
+                      {task.description && (
+                        <p className="text-sm text-gray-600">{task.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="secondary" className={getPriorityColor(task.priority)}>
+                          {task.priority}
+                        </Badge>
+                        {task.subjects && (
+                          <Badge variant="outline">{task.subjects.name}</Badge>
+                        )}
+                        {task.due_date && (
+                          <span className="text-xs text-gray-500">Due: {task.due_date}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <CheckSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No pending tasks</p>
+                  <Button variant="outline" className="mt-2" onClick={() => setShowAddTask(true)}>
+                    Add Your First Task
+                  </Button>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
@@ -192,24 +228,35 @@ export const TaskManager = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {tasks.filter(task => task.completed).map((task) => (
-                <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg border bg-green-50">
-                  <Checkbox 
-                    checked={task.completed}
-                    onCheckedChange={() => toggleTask(task.id)}
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900 line-through">{task.title}</h3>
-                    <p className="text-sm text-gray-600">{task.subject}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="secondary" className="bg-green-200 text-green-800">
-                        completed
-                      </Badge>
-                      <span className="text-xs text-gray-500">Completed</span>
+              {tasks.filter(task => task.completed).length > 0 ? (
+                tasks.filter(task => task.completed).map((task) => (
+                  <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg border bg-green-50">
+                    <Checkbox 
+                      checked={task.completed}
+                      onCheckedChange={() => toggleTask(task.id, task.completed)}
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900 line-through">{task.title}</h3>
+                      {task.description && (
+                        <p className="text-sm text-gray-600">{task.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="secondary" className="bg-green-200 text-green-800">
+                          completed
+                        </Badge>
+                        {task.subjects && (
+                          <Badge variant="outline">{task.subjects.name}</Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <CheckSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No completed tasks yet</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>

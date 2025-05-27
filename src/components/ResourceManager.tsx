@@ -3,53 +3,52 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, Video, ExternalLink, Search, Filter } from 'lucide-react';
+import { Upload, FileText, Video, ExternalLink, Search, Filter, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useStudyResources, useCreateStudyResource } from '@/hooks/useStudyResources';
+import { useSubjects } from '@/hooks/useSubjects';
+import { useToast } from '@/hooks/use-toast';
 
 export const ResourceManager = () => {
-  const [resources] = useState([
-    {
-      id: 1,
-      name: 'Data Structures Complete Guide.pdf',
-      type: 'pdf',
-      subject: 'Computer Science',
-      size: '2.4 MB',
-      uploadDate: '2024-01-15',
-      tags: ['important', 'theory']
-    },
-    {
-      id: 2,
-      name: 'UPSC Previous Years Papers',
-      type: 'link',
-      subject: 'General Studies',
-      url: 'https://example.com',
-      uploadDate: '2024-01-14',
-      tags: ['practice', 'previous-year']
-    },
-    {
-      id: 3,
-      name: 'Database Concepts Video Series',
-      type: 'video',
-      subject: 'Computer Science',
-      duration: '45 min',
-      uploadDate: '2024-01-13',
-      tags: ['video', 'comprehensive']
-    },
-    {
-      id: 4,
-      name: 'Current Affairs January 2024.docx',
-      type: 'document',
-      subject: 'Current Affairs',
-      size: '1.8 MB',
-      uploadDate: '2024-01-12',
-      tags: ['current-affairs', 'monthly']
-    }
-  ]);
-
+  const { data: resources = [] } = useStudyResources();
+  const { data: subjects = [] } = useSubjects();
+  const createStudyResource = useCreateStudyResource();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
+  const [showAddResource, setShowAddResource] = useState(false);
+  const [newResourceName, setNewResourceName] = useState('');
+  const [newResourceUrl, setNewResourceUrl] = useState('');
 
-  const subjects = ['all', 'Computer Science', 'General Studies', 'Current Affairs'];
+  const handleAddResource = async () => {
+    if (!newResourceName.trim()) return;
+    
+    try {
+      await createStudyResource.mutateAsync({
+        name: newResourceName,
+        type: newResourceUrl ? 'link' : 'document',
+        external_url: newResourceUrl || undefined,
+        tags: []
+      });
+      
+      setNewResourceName('');
+      setNewResourceUrl('');
+      setShowAddResource(false);
+      
+      toast({
+        title: "Resource added!",
+        description: "New study resource has been added to your collection.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add resource. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const subjectOptions = ['all', ...subjects.map(s => s.name)];
 
   const getFileIcon = (type: string) => {
     switch (type) {
@@ -67,8 +66,9 @@ export const ResourceManager = () => {
 
   const filteredResources = resources.filter(resource => {
     const matchesSearch = resource.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesSubject = selectedSubject === 'all' || resource.subject === selectedSubject;
+                         (resource.tags && resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+    const matchesSubject = selectedSubject === 'all' || 
+                          (resource.subjects && resource.subjects.name === selectedSubject);
     return matchesSearch && matchesSubject;
   });
 
@@ -82,18 +82,47 @@ export const ResourceManager = () => {
       {/* Upload Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Upload New Resource
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Add New Resource
+            </span>
+            <Button size="sm" onClick={() => setShowAddResource(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Resource
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
-            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-lg font-medium text-gray-900 mb-2">Drop files here or click to upload</p>
-            <p className="text-sm text-gray-500 mb-4">Support for PDFs, videos, documents, and links</p>
-            <Button>Choose Files</Button>
-          </div>
+          {showAddResource ? (
+            <div className="space-y-4">
+              <Input
+                placeholder="Resource name..."
+                value={newResourceName}
+                onChange={(e) => setNewResourceName(e.target.value)}
+              />
+              <Input
+                placeholder="External URL (optional)..."
+                value={newResourceUrl}
+                onChange={(e) => setNewResourceUrl(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button onClick={handleAddResource} disabled={!newResourceName.trim()}>
+                  Add Resource
+                </Button>
+                <Button variant="outline" onClick={() => setShowAddResource(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" onClick={() => setShowAddResource(true)}>
+              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-lg font-medium text-gray-900 mb-2">Add study resources</p>
+              <p className="text-sm text-gray-500 mb-4">Add links, documents, and other study materials</p>
+              <Button>Add Resource</Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -117,7 +146,7 @@ export const ResourceManager = () => {
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm"
               >
-                {subjects.map(subject => (
+                {subjectOptions.map(subject => (
                   <option key={subject} value={subject}>
                     {subject === 'all' ? 'All Subjects' : subject}
                   </option>
@@ -130,38 +159,62 @@ export const ResourceManager = () => {
 
       {/* Resources Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredResources.map((resource) => (
-          <Card key={resource.id} className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                {getFileIcon(resource.type)}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate mb-2">{resource.name}</h3>
-                  <div className="space-y-2">
-                    <Badge variant="outline">{resource.subject}</Badge>
-                    <div className="flex flex-wrap gap-1">
-                      {resource.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="text-sm text-gray-500 space-y-1">
-                      {resource.size && <p>Size: {resource.size}</p>}
-                      {resource.duration && <p>Duration: {resource.duration}</p>}
-                      <p>Uploaded: {resource.uploadDate}</p>
+        {filteredResources.length > 0 ? (
+          filteredResources.map((resource) => (
+            <Card key={resource.id} className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  {getFileIcon(resource.type)}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate mb-2">{resource.name}</h3>
+                    <div className="space-y-2">
+                      {resource.subjects && (
+                        <Badge variant="outline">{resource.subjects.name}</Badge>
+                      )}
+                      {resource.tags && resource.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {resource.tags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <div className="text-sm text-gray-500 space-y-1">
+                        {resource.size_mb && <p>Size: {resource.size_mb} MB</p>}
+                        {resource.duration_minutes && <p>Duration: {resource.duration_minutes} min</p>}
+                        <p>Added: {new Date(resource.created_at).toLocaleDateString()}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="mt-4 pt-4 border-t">
-                <Button variant="outline" size="sm" className="w-full">
-                  {resource.type === 'link' ? 'Open Link' : 'Download'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <div className="mt-4 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => {
+                      if (resource.external_url) {
+                        window.open(resource.external_url, '_blank');
+                      }
+                    }}
+                  >
+                    {resource.type === 'link' ? 'Open Link' : 'View Resource'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 mb-4">No study resources found</p>
+            <Button onClick={() => setShowAddResource(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Your First Resource
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

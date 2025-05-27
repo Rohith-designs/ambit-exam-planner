@@ -2,51 +2,47 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Calendar, Clock, Plus, Target } from 'lucide-react';
 import { useState } from 'react';
+import { useStudySessions, useCreateStudySession } from '@/hooks/useStudySessions';
+import { useSubjects } from '@/hooks/useSubjects';
+import { useToast } from '@/hooks/use-toast';
 
 export const StudyCalendar = () => {
+  const { data: studySessions = [] } = useStudySessions();
+  const { data: subjects = [] } = useSubjects();
+  const createStudySession = useCreateStudySession();
+  const { toast } = useToast();
   const [currentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [newSessionTitle, setNewSessionTitle] = useState('');
+  const [showAddSession, setShowAddSession] = useState(false);
 
-  const events = [
-    {
-      id: 1,
-      title: 'Computer Networks Revision',
-      date: '2024-01-20',
-      time: '09:00 AM',
-      type: 'study',
-      duration: '2 hours',
-      priority: 'high'
-    },
-    {
-      id: 2,
-      title: 'RRB JE Mock Test',
-      date: '2024-01-20',
-      time: '02:00 PM',
-      type: 'test',
-      duration: '3 hours',
-      priority: 'high'
-    },
-    {
-      id: 3,
-      title: 'Current Affairs Reading',
-      date: '2024-01-21',
-      time: '07:00 AM',
-      type: 'study',
-      duration: '1 hour',
-      priority: 'medium'
-    },
-    {
-      id: 4,
-      title: 'UPSC Prelims - 2024',
-      date: '2024-06-16',
-      time: '09:30 AM',
-      type: 'exam',
-      duration: '2.5 hours',
-      priority: 'high'
+  const handleAddSession = async () => {
+    if (!newSessionTitle.trim()) return;
+    
+    try {
+      await createStudySession.mutateAsync({
+        title: newSessionTitle,
+        scheduled_date: currentDate.toISOString().split('T')[0],
+        session_type: 'study'
+      });
+      
+      setNewSessionTitle('');
+      setShowAddSession(false);
+      
+      toast({
+        title: "Study session scheduled!",
+        description: "New session has been added to your calendar.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create study session. Please try again.",
+        variant: "destructive",
+      });
     }
-  ];
+  };
 
   const upcomingExams = [
     { name: 'RRB JE IT', date: '2024-05-15', daysLeft: 120 },
@@ -59,12 +55,13 @@ export const StudyCalendar = () => {
       case 'exam': return 'bg-red-100 text-red-800 border-red-200';
       case 'test': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'study': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'revision': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const todaysEvents = events.filter(event => 
-    event.date === currentDate.toISOString().split('T')[0]
+  const todaysSessions = studySessions.filter(session => 
+    session.scheduled_date === currentDate.toISOString().split('T')[0]
   );
 
   return (
@@ -83,26 +80,49 @@ export const StudyCalendar = () => {
                 <Calendar className="h-5 w-5" />
                 Today's Schedule
               </span>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowAddSession(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Event
               </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {todaysEvents.length > 0 ? (
+            {showAddSession && (
+              <div className="mb-4 p-3 border rounded-lg space-y-3">
+                <Input
+                  placeholder="Enter session title..."
+                  value={newSessionTitle}
+                  onChange={(e) => setNewSessionTitle(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddSession()}
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleAddSession} disabled={!newSessionTitle.trim()}>
+                    Add
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowAddSession(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+            {todaysSessions.length > 0 ? (
               <div className="space-y-3">
-                {todaysEvents.map((event) => (
-                  <div key={event.id} className="flex items-center gap-4 p-3 rounded-lg border">
+                {todaysSessions.map((session) => (
+                  <div key={session.id} className="flex items-center gap-4 p-3 rounded-lg border">
                     <div className="flex-shrink-0">
                       <Clock className="h-5 w-5 text-gray-500" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{event.title}</h3>
-                      <p className="text-sm text-gray-600">{event.time} • {event.duration}</p>
+                      <h3 className="font-semibold text-gray-900">{session.title}</h3>
+                      <p className="text-sm text-gray-600">
+                        {session.start_time || '09:00'} • {session.duration_hours || 1}h
+                      </p>
+                      {session.description && (
+                        <p className="text-sm text-gray-500 mt-1">{session.description}</p>
+                      )}
                     </div>
-                    <Badge className={getEventTypeColor(event.type)}>
-                      {event.type}
+                    <Badge className={getEventTypeColor(session.session_type)}>
+                      {session.session_type}
                     </Badge>
                   </div>
                 ))}
@@ -111,7 +131,7 @@ export const StudyCalendar = () => {
               <div className="text-center py-8">
                 <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">No events scheduled for today</p>
-                <Button variant="outline" className="mt-2">
+                <Button variant="outline" className="mt-2" onClick={() => setShowAddSession(true)}>
                   Schedule Study Session
                 </Button>
               </div>
@@ -148,26 +168,35 @@ export const StudyCalendar = () => {
       {/* Weekly View */}
       <Card>
         <CardHeader>
-          <CardTitle>Weekly View</CardTitle>
+          <CardTitle>This Week's Sessions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 gap-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <div key={day} className="p-4 text-center border rounded-lg">
-                <p className="font-semibold text-sm text-gray-600">{day}</p>
-                <p className="text-lg font-bold text-gray-900 mt-1">
-                  {Math.floor(Math.random() * 28) + 1}
-                </p>
-                <div className="mt-2 space-y-1">
-                  {Math.random() > 0.5 && (
-                    <div className="w-full h-2 bg-blue-200 rounded-full" />
-                  )}
-                  {Math.random() > 0.7 && (
-                    <div className="w-full h-2 bg-green-200 rounded-full" />
+          <div className="space-y-3">
+            {studySessions.slice(0, 5).map((session) => (
+              <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <h3 className="font-medium text-gray-900">{session.title}</h3>
+                  <p className="text-sm text-gray-600">
+                    {session.scheduled_date} at {session.start_time || '09:00'}
+                  </p>
+                  {session.subjects && (
+                    <Badge variant="outline" className="mt-1">{session.subjects.name}</Badge>
                   )}
                 </div>
+                <Badge className={getEventTypeColor(session.session_type)}>
+                  {session.session_type}
+                </Badge>
               </div>
             ))}
+            {studySessions.length === 0 && (
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No study sessions scheduled</p>
+                <Button variant="outline" className="mt-2" onClick={() => setShowAddSession(true)}>
+                  Schedule Your First Session
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
