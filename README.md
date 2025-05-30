@@ -1,73 +1,48 @@
-# Welcome to your Lovable project
+# Hack Culprit Virtual Internship - Project Report
 
-## Project info
+## Project Title: Study Resource Organizer (StudyPro)
 
-**URL**: https://lovable.dev/projects/48f5f9d8-dbb1-44a5-b201-8b3ed73f15bf
+### Submitted by:
+**Name:** Adaka Venkata Rohith  
+**Internship Role:** Virtual Intern  
+**Organization:** Hack Culprit  
+**GitHub Profile:** [Rohith-designs](https://github.com/Rohith-designs)  
+**Project Duration:** 1st May 2025 – 31st May 2025  
+**Project Repository:** [study_resource_organizer](https://github.com/Rohith-designs/study_resource_organizer)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 1. Executive Summary
 
-**Use Lovable**
+This document presents the development journey of **Study Resource Organizer (StudyPro)**, a modern, responsive web application built during the Hack Culprit Virtual Internship. The goal was to create a platform that helps students organize their exam preparation efficiently using a centralized, easy-to-navigate dashboard. This project allowed the application of real-world development practices using modern frameworks and tools.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/48f5f9d8-dbb1-44a5-b201-8b3ed73f15bf) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 2. Problem Statement
 
-**Use your preferred IDE**
+Students preparing for competitive or academic exams often face difficulties managing their study materials, exam schedules, and important resources. There is a lack of lightweight, user-friendly platforms tailored specifically for study planning. This project bridges that gap by offering a centralized dashboard where students can manage resources, track upcoming exams, and bookmark essential links.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 3. Project Objectives
 
-Follow these steps:
+- To build a real-world, responsive exam and study resource management platform  
+- To integrate secure authentication and personalized dashboards  
+- To utilize modern frontend frameworks (React + Tailwind) and backend-as-a-service (Supabase)  
+- To practice collaborative development using Git and GitHub  
+- To deliver a deployable, scalable solution for student productivity  
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 4. Development Approach
 
-# Step 3: Install the necessary dependencies.
-npm i
+The project was carried out in the following phases:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- **Requirement Analysis & Planning** – Defined key features like login, dashboard, resource upload, and exam tracking  
+- **Development** – Created frontend with React (Vite), backend via Supabase, styled using Tailwind and Shadcn UI  
+- **Testing & Debugging** – Manual testing and bug fixing during development phases  
+- **Documentation & Deployment** – Created detailed documentation and structured project repository  
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/48f5f9d8-dbb1-44a5-b201-8b3ed73f15bf) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 5. Tools & Technologies
