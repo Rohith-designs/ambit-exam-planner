@@ -1,15 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
 import { Dashboard } from '@/components/Dashboard';
-import { SyllabusTracker } from '@/components/SyllabusTracker';
 import { ResourceManager } from '@/components/ResourceManager';
 import { StudyCalendar } from '@/components/StudyCalendar';
 import { TaskManager } from '@/components/TaskManager';
 import { NotesSection } from '@/components/NotesSection';
-import { ProgressAnalytics } from '@/components/ProgressAnalytics';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
@@ -42,8 +39,6 @@ const Index = () => {
     switch (activeSection) {
       case 'dashboard':
         return <Dashboard />;
-      case 'syllabus':
-        return <SyllabusTracker />;
       case 'resources':
         return <ResourceManager />;
       case 'calendar':
@@ -52,8 +47,6 @@ const Index = () => {
         return <TaskManager />;
       case 'notes':
         return <NotesSection />;
-      case 'analytics':
-        return <ProgressAnalytics />;
       default:
         return <Dashboard />;
     }

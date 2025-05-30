@@ -1,9 +1,11 @@
-
 import { Calendar, FileText, BookOpen, CheckSquare, Upload, BarChart3, Home, Target, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  LayoutDashboard, 
+} from 'lucide-react';
 
 interface SidebarProps {
   activeSection: string;
@@ -11,13 +13,11 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'syllabus', label: 'Syllabus Tracker', icon: Target },
-  { id: 'resources', label: 'Resources', icon: Upload },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'resources', label: 'Resources', icon: BookOpen },
   { id: 'calendar', label: 'Study Calendar', icon: Calendar },
   { id: 'tasks', label: 'Task Manager', icon: CheckSquare },
   { id: 'notes', label: 'Notes', icon: FileText },
-  { id: 'analytics', label: 'Progress', icon: BarChart3 },
 ];
 
 export const Sidebar = ({ activeSection, onSectionChange }: SidebarProps) => {
@@ -55,19 +55,18 @@ export const Sidebar = ({ activeSection, onSectionChange }: SidebarProps) => {
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
-              <button
+              <Button
                 key={item.id}
-                onClick={() => onSectionChange(item.id)}
+                variant={activeSection === item.id ? 'default' : 'ghost'}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors",
-                  activeSection === item.id
-                    ? "bg-blue-50 text-blue-600 border border-blue-200"
-                    : "text-gray-600 hover:bg-gray-50"
+                  'w-full justify-start gap-2',
+                  activeSection === item.id && 'bg-blue-600 text-white hover:bg-blue-700'
                 )}
+                onClick={() => onSectionChange(item.id)}
               >
                 <Icon className="h-5 w-5" />
                 {item.label}
-              </button>
+              </Button>
             );
           })}
         </nav>
